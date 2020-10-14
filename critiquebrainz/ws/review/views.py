@@ -351,6 +351,7 @@ def review_list_handler():
 
     user_id = Parser.uuid('uri', 'user_id', optional=True)
     sort = Parser.string('uri', 'sort', valid_values=['popularity', 'published_on', 'rating', 'created'], optional=True)
+    review_type = Parser.string('uri', 'review_type', valid_values=['rating', 'text', 'all'], optional=True)
 
     # "rating" and "created" sort values are deprecated and but allowed here for backward compatibility
     if sort == 'created':
@@ -387,6 +388,12 @@ def review_list_handler():
             'reviews': reviews,
             'count': count,
         }, namespace=REVIEW_CACHE_NAMESPACE)
+    if review_type:
+        if review_type == 'rating':
+            reviews = list(filter(lambda x: x['rating'], reviews))
+        elif review_type == 'text':
+            reviews = list(filter(lambda x: x['text'], reviews))
+        count = len(reviews)
 
     return jsonify(limit=limit, offset=offset, count=count, reviews=reviews)
 
