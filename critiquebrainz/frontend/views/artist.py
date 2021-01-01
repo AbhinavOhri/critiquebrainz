@@ -9,6 +9,7 @@ import critiquebrainz.frontend.external.musicbrainz_db.artist as mb_artist
 import critiquebrainz.frontend.external.musicbrainz_db.exceptions as mb_exceptions
 import critiquebrainz.frontend.external.musicbrainz_db.release_group as mb_release_group
 from critiquebrainz.frontend.views import BROWSE_RELEASE_GROUPS_LIMIT, ARTIST_REVIEWS_LIMIT
+from critiquebrainz.frontend import flash
 
 artist_bp = Blueprint('artist', __name__)
 
@@ -45,9 +46,11 @@ def entity(mbid):
     if release_type not in ['album', 'single', 'ep', 'broadcast', 'other']:  # supported release types
         raise BadRequest("Unsupported release type.")
 
-    page = int(request.args.get('page', default=1))
-    if page < 1:
-        return redirect(url_for('.reviews'))
+    try:
+        page = int(request.args.get('page', default=1))
+    except ValueError:
+        flash.error(gettext("Invalid Page Number"))
+        return redirect(url_for('.reviews', mbid=mbid))
     release_groups_offset = (page - 1) * BROWSE_RELEASE_GROUPS_LIMIT
     release_groups, release_group_count = mb_release_group.browse_release_groups(
         artist_id=artist['id'],

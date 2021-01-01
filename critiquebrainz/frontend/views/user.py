@@ -25,9 +25,13 @@ def reviews(user_id):
         if not user:
             raise NotFound("Can't find a user with ID: {user_id}".format(user_id=user_id))
         user = User(user)
-    page = int(request.args.get('page', default=1))
+    try:
+        page = int(request.args.get('page', default=1))
+    except ValueError:
+        flash.error(gettext("Invalid Page Number"))
+        return redirect(url_for('user.reviews', user_id=user_id))
     if page < 1:
-        return redirect(url_for('.reviews'))
+        return redirect(url_for('user.reviews', user_id=user_id))
     limit = 12
     offset = (page - 1) * limit
     reviews, count = db_review.list_reviews(user_id=user_id, sort='published_on', limit=limit, offset=offset,
